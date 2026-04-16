@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Astudillo Dental Clinic - Profiling System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0284c7', // Sky 600
+                        secondary: '#0369a1', // Sky 700
+                        background: '#f0f9ff', // Sky 50
+                        patient: '#059669', // Emerald 600
+                        patientDark: '#047857' // Emerald 700
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden-view { display: none !important; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans h-screen w-screen overflow-hidden flex flex-col relative">
+
+    <!-- Custom Notification System -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
+
+    <!-- ========================================== -->
+    <!-- ROUTE 0: MAIN LANDING PAGE                 -->
+    <!-- ========================================== -->
+    <div id="route-landing" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-background px-4 fade-in">
+        <div class="text-center mb-10">
+            <div class="bg-white text-primary w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-md border border-blue-100">
+                <i class="fa-solid fa-tooth"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Dr. Astudillo</h1>
+            <p class="text-gray-500 mt-2 text-lg">Dental Clinic Portal</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+            <!-- Patient Portal Card -->
+            <button onclick="switchRoute('patient-form')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg border border-gray-200 transition group flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-emerald-100 text-patient rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">I am a Patient</h2>
+                <p class="text-sm text-gray-500">Fill out your personal information before your consultation.</p>
+            </button>
+
+            <!-- Admin Portal Card -->
+            <button onclick="switchRoute('admin-login')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg border border-gray-200 transition group flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-blue-100 text-primary rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Clinic Administration</h2>
+                <p class="text-sm text-gray-500">Dentist and staff login for record management.</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ROUTE 1: PATIENT PUBLIC REGISTRATION       -->
+    <!-- ========================================== -->
+    <div id="route-patient-form" class="hidden-view absolute inset-0 z-40 bg-gray-50 overflow-y-auto w-full h-full">
+        <div class="max-w-2xl mx-auto p-4 md:p-8 mt-4 md:mt-10 fade-in pb-20">
+            <button onclick="switchRoute('landing')" class="text-gray-500 hover:text-gray-800 mb-6 flex items-center gap-2 font-medium transition">
+                <i class="fa-solid fa-arrow-left"></i> Back to Home
+            </button>
+
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                <div class="bg-patient px-6 py-8 text-center text-white">
+                    <i class="fa-solid fa-file-medical text-4xl mb-3 opacity-90"></i>
+                    <h2 class="text-2xl font-bold">Patient Information Form</h2>
+                    <p class="text-emerald-100 mt-1 text-sm">Please fill out your details carefully.</p>
+                </div>
+                
+                <form id="client-registration-form" class="p-6 md:p-8 space-y-5" onsubmit="handleClientSubmission(event)">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="client-name" required placeholder="Last Name, First Name M.I." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-patient focus:border-patient outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Age</label>
+                            <input type="number" id="client-age" required min="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-patient focus:border-patient outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Contact Number</label>
+                            <input type="text" id="client-contact" required placeholder="09xxxxxxxxx" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-patient focus:border-patient outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Complete Address</label>
+                            <input type="text" id="client-address" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-patient focus:border-patient outline-none transition bg-gray-50 focus:bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Medical History / Allergies</label>
+                            <p class="text-xs text-gray-500 mb-2">List any medications you are taking or allergies (e.g., Penicillin, Anesthesia).</p>
+                            <textarea id="client-history" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-patient focus:border-patient outline-none transition bg-gray-50 focus:bg-white" placeholder="Type 'None' if not applicable..."></textarea>
+                        </div>
+                    </div>
+                    <div class="pt-6">
+                        <button type="submit" class="w-full bg-patient hover:bg-patientDark text-white font-bold py-4 rounded-xl transition shadow-md text-lg">
+                            Submit Form to Clinic
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ROUTE 2: ADMIN LOGIN & DASHBOARD           -->
+    <!-- ========================================== -->
+    
+    <!-- Admin Login View -->
+    <div id="route-admin-login" class="hidden-view absolute inset-0 z-40 bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4 w-full h-full">
+        <button onclick="switchRoute('landing')" class="absolute top-6 left-6 text-white/80 hover:text-white flex items-center gap-2 font-medium transition">
+            <i class="fa-solid fa-arrow-left"></i> Home
+        </button>
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
+            <div class="text-center mb-8">
+                <div class="bg-blue-100 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Clinic Admin</h2>
+                <p class="text-gray-500 mt-1">Authorized Personnel Only</p>
+            </div>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Username</label>
+                    <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" value="admin" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" value="password" required>
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-secondary text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-md">
+                    Login to System
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin App / Dashboard View -->
+    <div id="route-admin-app" class="hidden-view w-full h-full flex flex-col md:flex-row relative z-30">
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-white shadow-sm flex items-center justify-between p-4 z-20 shrink-0">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-tooth text-primary text-xl"></i>
+                <div>
+                    <h1 class="font-bold text-gray-800 leading-tight">Dr. Astudillo</h1>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-wider block">Admin Panel</span>
+                </div>
+            </div>
+            <button onclick="toggleMobileMenu()" class="text-gray-600 p-2 focus:outline-none hover:bg-gray-100 rounded-lg transition">
+                <i class="fa-solid fa-bars text-2xl"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-overlay" class="fixed inset-0 bg-gray-800/60 z-30 hidden md:hidden backdrop-blur-sm transition-opacity" onclick="toggleMobileMenu()"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-300 ease-in-out w-64 bg-white shadow-xl md:shadow-lg flex flex-col z-40 h-full shrink-0">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between md:justify-start gap-3">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-tooth text-primary text-2xl hidden md:block"></i>
+                    <div>
+                        <h2 class="font-bold text-lg leading-tight text-gray-800">Menu</h2>
+                        <span class="text-xs text-gray-500 uppercase tracking-wider hidden md:block">Admin Panel</span>
+                    </div>
+                </div>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button onclick="switchAdminTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg text-primary bg-blue-50 font-medium transition">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                </button>
+                <button onclick="switchAdminTab('directory')" id="nav-directory" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary transition">
+                    <i class="fa-solid fa-users w-5"></i> Patient Records
+                </button>
+                <button onclick="switchAdminTab('register')" id="nav-register" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary transition">
+                    <i class="fa-solid fa-user-plus w-5"></i> Manual Add
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-gray-100">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 md:py-2 text-left rounded-lg text-red-500 hover:bg-red-50 transition">
+                    <i class="fa-solid fa-right-from-bracket w-5"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto bg-background p-4 md:p-8 w-full relative">
+            
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="admin-tab fade-in">
+                <h2 class="text-2xl font-bold mb-4 md:mb-6 text-gray-800">Clinic Overview</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-blue-100 text-primary flex shrink-0 items-center justify-center text-2xl">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-semibold">Total Patients</p>
+                            <h3 class="text-3xl font-bold text-gray-800" id="stat-total">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-full bg-green-100 text-green-600 flex shrink-0 items-center justify-center text-2xl">
+                            <i class="fa-solid fa-notes-medical"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-semibold">Treatments Recorded</p>
+                            <h3 class="text-3xl font-bold text-gray-800" id="stat-treatments">0</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Notice for Admin -->
+                <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-start gap-4">
+                    <i class="fa-solid fa-circle-info text-primary text-xl mt-0.5"></i>
+                    <div>
+                        <h4 class="font-bold text-gray-800">System Sync Active</h4>
+                        <p class="text-sm text-gray-600 mt-1">When patients fill out the public registration form, their details will automatically appear in the <strong>Patient Records</strong> tab.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Directory / Search Tab -->
+            <div id="tab-directory" class="admin-tab hidden-view fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Patient Records</h2>
+                    <div class="relative w-full md:w-72">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="search-input" onkeyup="filterDirectory()" placeholder="Search by name or contact..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm md:text-base bg-white">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full">
+                    <div class="overflow-x-auto w-full pb-2">
+                        <table class="w-full min-w-[600px] text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200">
+                                    <th class="px-4 md:px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient Name</th>
+                                    <th class="px-4 md:px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Age</th>
+                                    <th class="px-4 md:px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Contact</th>
+                                    <th class="px-4 md:px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="directory-tbody" class="divide-y divide-gray-100">
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Manual Registration Tab -->
+            <div id="tab-register" class="admin-tab hidden-view fade-in">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full max-w-3xl">
+                    <div class="px-5 md:px-6 py-4 border-b border-gray-100 bg-gray-50">
+                        <h2 class="text-lg font-bold text-gray-800">Manual Patient Entry</h2>
+                        <p class="text-xs md:text-sm text-gray-500">For walk-in patients without smartphones</p>
+                    </div>
+                    <form id="admin-registration-form" class="p-5 md:p-6 space-y-4 md:space-y-5" onsubmit="handleAdminSubmission(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                                <input type="text" id="admin-reg-name" required class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Age</label>
+                                <input type="number" id="admin-reg-age" required min="1" class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Contact Number</label>
+                                <input type="text" id="admin-reg-contact" required class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Address</label>
+                                <input type="text" id="admin-reg-address" required class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Medical History / Allergies</label>
+                            <textarea id="admin-reg-history" rows="3" class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary outline-none" placeholder="e.g. Allergic to Penicillin, Diabetic..."></textarea>
+                        </div>
+                        <div class="pt-2 flex justify-end">
+                            <button type="submit" class="w-full md:w-auto bg-primary hover:bg-secondary text-white font-semibold py-3 md:py-2 px-6 rounded-md transition shadow-sm">
+                                Save to Database
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Individual Patient Profile Tab -->
+            <div id="tab-profile" class="admin-tab hidden-view fade-in pb-10">
+                <button onclick="switchAdminTab('directory')" class="text-sm font-semibold text-gray-500 hover:text-primary mb-4 flex items-center gap-2 transition w-fit py-2 px-1">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Directory
+                </button>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                    <!-- Profile Info Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6 lg:col-span-1 h-fit">
+                        <div class="flex items-center gap-4 mb-5 md:mb-6 pb-5 md:pb-6 border-b border-gray-100">
+                            <div class="w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-full bg-primary text-white flex items-center justify-center text-xl md:text-2xl font-bold" id="profile-initial"></div>
+                            <div class="overflow-hidden">
+                                <h2 class="text-lg md:text-xl font-bold text-gray-800 truncate" id="profile-name"></h2>
+                                <p class="text-xs md:text-sm text-gray-500">Patient ID: #<span id="profile-id"></span></p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Age</p>
+                                    <p class="font-medium text-gray-800 text-sm md:text-base" id="profile-age"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact</p>
+                                    <p class="font-medium text-gray-800 text-sm md:text-base break-words" id="profile-contact"></p>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</p>
+                                <p class="font-medium text-gray-800 text-sm md:text-base" id="profile-address"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Medical History</p>
+                                <p class="font-medium p-3 rounded mt-1 text-sm border" id="profile-history"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Treatment History Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-2 flex flex-col">
+                        <div class="px-4 md:px-6 py-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <h3 class="text-base md:text-lg font-bold text-gray-800">Treatment History</h3>
+                            <button onclick="toggleTreatmentForm()" class="w-full sm:w-auto justify-center bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 px-4 py-2 rounded-md text-sm font-semibold transition flex items-center gap-2 shadow-sm">
+                                <i class="fa-solid fa-plus"></i> New Record
+                            </button>
+                        </div>
+                        
+                        <!-- Add New Treatment Form -->
+                        <div id="add-treatment-form" class="hidden-view bg-blue-50/50 border-b border-blue-100 p-4 md:p-6">
+                            <h4 class="font-semibold text-primary mb-3 md:mb-4 text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-tooth"></i> Record Procedure</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Date</label>
+                                    <input type="date" id="treat-date" class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Procedure</label>
+                                    <input type="text" id="treat-proc" placeholder="e.g., Tooth Extraction" class="w-full px-3 py-3 md:py-2 border border-gray-300 rounded text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Notes / Prescription</label>
+                                <textarea id="treat-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white"></textarea>
+                            </div>
+                            <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
+                                <button onclick="toggleTreatmentForm()" class="w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 bg-white border border-gray-300 rounded">Cancel</button>
+                                <button onclick="saveTreatment()" class="w-full sm:w-auto bg-primary hover:bg-secondary text-white text-sm font-semibold py-3 md:py-2 px-6 rounded shadow transition">Save Treatment</button>
+                            </div>
+                        </div>
+
+                        <!-- Treatment Table -->
+                        <div class="flex-1 overflow-x-auto p-0">
+                            <table class="w-full min-w-[500px] text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-white border-b border-gray-200">
+                                        <th class="px-4 md:px-6 py-3 text-xs font-semibold text-gray-400 uppercase">Date</th>
+                                        <th class="px-4 md:px-6 py-3 text-xs font-semibold text-gray-400 uppercase">Procedure</th>
+                                        <th class="px-4 md:px-6 py-3 text-xs font-semibold text-gray-400 uppercase">Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="treatments-tbody" class="divide-y divide-gray-100 text-sm">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- APPLICATION LOGIC & MOCK DATABASE          -->
+    <!-- ========================================== -->
+    <script>
+        // --- Shared Database Simulation ---
+        let patients = [
+            { id: 1001, name: "Juan Dela Cruz", age: 34, contact: "09123456789", address: "Quezon City, Manila", medicalHistory: "No known allergies.", treatments: [
+                { date: "2024-02-10", procedure: "Oral Prophylaxis", notes: "Routine checkup." }
+            ]}
+        ];
+        let currentPatientId = null;
+
+        // --- Notification UI ---
+        function showMessage(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            toast.className = `${colors} text-white px-4 md:px-6 py-4 md:py-3 rounded shadow-xl flex items-center gap-3 fade-in max-w-[90vw] md:max-w-md ml-auto relative z-[100]`;
+            toast.innerHTML = `<i class="fa-solid ${icon} shrink-0 text-lg"></i> <span class="font-medium text-sm leading-tight">${msg}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // --- Top-Level Router Simulation ---
+        function switchRoute(routeName) {
+            // Hide all primary routes
+            ['landing', 'patient-form', 'admin-login', 'admin-app'].forEach(r => {
+                document.getElementById(`route-${r}`).classList.add('hidden-view');
+            });
+            
+            // Show selected route
+            document.getElementById(`route-${routeName}`).classList.remove('hidden-view');
+
+            // Reset admin forms if leaving admin areas
+            if(routeName === 'landing') {
+                document.getElementById('login-form').reset();
+            }
+        }
+
+        // --- Client/Patient Logic ---
+        function handleClientSubmission(e) {
+            e.preventDefault();
+            
+            const newPatient = {
+                id: Date.now(), 
+                name: document.getElementById('client-name').value,
+                age: document.getElementById('client-age').value,
+                contact: document.getElementById('client-contact').value,
+                address: document.getElementById('client-address').value,
+                medicalHistory: document.getElementById('client-history').value || "None",
+                treatments: []
+            };
+
+            patients.push(newPatient); // Save data globally
+            document.getElementById('client-registration-form').reset();
+            
+            showMessage('Form submitted successfully! Please wait to be called by the dentist.', 'success');
+            
+            // Return to landing page after brief delay
+            setTimeout(() => switchRoute('landing'), 1500);
+        }
+
+        // --- Admin Authentication Logic ---
+        function handleLogin(e) {
+            e.preventDefault();
+            switchRoute('admin-app');
+            switchAdminTab('dashboard'); // Default tab
+            showMessage('Welcome to the admin panel, Dr. Astudillo.', 'success');
+        }
+
+        function handleLogout() {
+            switchRoute('landing');
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.add('hidden');
+        }
+
+        // --- Admin Mobile Menu ---
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // --- Admin Sub-Tabs Navigation ---
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.add('hidden-view'));
+            
+            ['dashboard', 'register', 'directory'].forEach(id => {
+                const btn = document.getElementById('nav-' + id);
+                if(btn) btn.className = "w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg text-gray-600 hover:bg-gray-50 hover:text-primary transition";
+            });
+
+            const targetTab = document.getElementById('tab-' + tabId);
+            if(targetTab) targetTab.classList.remove('hidden-view');
+
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if(activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg text-primary bg-blue-50 font-medium transition";
+
+            if(!document.getElementById('sidebar').classList.contains('-translate-x-full')) {
+                toggleMobileMenu();
+            }
+
+            if(tabId === 'directory') refreshDirectory();
+            if(tabId === 'dashboard') updateDashboardStats();
+            document.querySelector('main').scrollTo(0,0);
+        }
+
+        // --- Admin Logic: Dashboard ---
+        function updateDashboardStats() {
+            document.getElementById('stat-total').innerText = patients.length;
+            let totalTreatments = patients.reduce((sum, p) => sum + p.treatments.length, 0);
+            document.getElementById('stat-treatments').innerText = totalTreatments;
+        }
+
+        // --- Admin Logic: Manual Add ---
+        function handleAdminSubmission(e) {
+            e.preventDefault();
+            const newPatient = {
+                id: Date.now(),
+                name: document.getElementById('admin-reg-name').value,
+                age: document.getElementById('admin-reg-age').value,
+                contact: document.getElementById('admin-reg-contact').value,
+                address: document.getElementById('admin-reg-address').value,
+                medicalHistory: document.getElementById('admin-reg-history').value || "None",
+                treatments: []
+            };
+
+            patients.push(newPatient);
+            document.getElementById('admin-registration-form').reset();
+            showMessage('Patient record added to database.', 'success');
+            switchAdminTab('directory');
+        }
+
+        // --- Admin Logic: Directory ---
+        function refreshDirectory(data = patients) {
+            const tbody = document.getElementById('directory-tbody');
+            tbody.innerHTML = '';
+            let sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name));
+
+            if (sortedData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">No records found.</td></tr>`;
+                return;
+            }
+
+            sortedData.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition border-b border-gray-100";
+                tr.innerHTML = `
+                    <td class="px-4 md:px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full shrink-0 bg-blue-100 text-primary flex items-center justify-center font-bold text-sm">${p.name.charAt(0).toUpperCase()}</div>
+                            <span class="font-bold text-gray-800 text-sm md:text-base">${p.name}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 md:px-6 py-4 text-gray-600 text-sm font-medium">${p.age}</td>
+                    <td class="px-4 md:px-6 py-4 text-gray-600 text-sm font-medium whitespace-nowrap">${p.contact}</td>
+                    <td class="px-4 md:px-6 py-4 text-right">
+                        <button onclick="viewProfile(${p.id})" class="text-primary bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-md text-xs md:text-sm font-bold transition whitespace-nowrap">
+                            View File
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterDirectory() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = patients.filter(p => 
+                p.name.toLowerCase().includes(query) || p.contact.includes(query)
+            );
+            refreshDirectory(filtered);
+        }
+
+        // --- Admin Logic: Profiles & Treatments ---
+        function viewProfile(id) {
+            currentPatientId = id;
+            const patient = patients.find(p => p.id === id);
+            
+            document.getElementById('profile-initial').innerText = patient.name.charAt(0).toUpperCase();
+            document.getElementById('profile-name').innerText = patient.name;
+            document.getElementById('profile-id').innerText = patient.id;
+            document.getElementById('profile-age').innerText = patient.age;
+            document.getElementById('profile-contact').innerText = patient.contact;
+            document.getElementById('profile-address').innerText = patient.address;
+            
+            const histEl = document.getElementById('profile-history');
+            histEl.innerText = patient.medicalHistory;
+            if(patient.medicalHistory.toLowerCase() === 'none' || patient.medicalHistory.trim() === '') {
+                histEl.className = "font-medium text-gray-600 bg-gray-100 p-3 rounded mt-1 text-sm border border-gray-200";
+                histEl.innerText = "No major history noted";
+            } else {
+                histEl.className = "font-medium text-red-700 bg-red-50 p-3 rounded mt-1 text-sm border border-red-200";
+            }
+
+            refreshTreatmentsTable(patient);
+            document.getElementById('add-treatment-form').classList.add('hidden-view');
+            document.getElementById('treat-date').valueAsDate = new Date();
+            
+            switchAdminTab('profile');
+        }
+
+        function refreshTreatmentsTable(patient) {
+            const tbody = document.getElementById('treatments-tbody');
+            tbody.innerHTML = '';
+            const sortedTreatments = [...patient.treatments].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if(sortedTreatments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500 italic">No past treatments recorded.</td></tr>`;
+                return;
+            }
+
+            sortedTreatments.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition border-b border-gray-50";
+                tr.innerHTML = `
+                    <td class="px-4 md:px-6 py-4 whitespace-nowrap text-gray-600 font-medium">${t.date}</td>
+                    <td class="px-4 md:px-6 py-4 font-bold text-gray-800 whitespace-nowrap md:whitespace-normal">${t.procedure}</td>
+                    <td class="px-4 md:px-6 py-4 text-gray-600 min-w-[200px]">${t.notes}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleTreatmentForm() {
+            const form = document.getElementById('add-treatment-form');
+            form.classList.toggle('hidden-view');
+            if(!form.classList.contains('hidden-view') && window.innerWidth < 768) {
+               setTimeout(() => { form.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+            }
+        }
+
+        function saveTreatment() {
+            const date = document.getElementById('treat-date').value;
+            const proc = document.getElementById('treat-proc').value;
+            const notes = document.getElementById('treat-notes').value;
+
+            if(!proc || !date) {
+                showMessage('Procedure and Date are required.', 'error');
+                return;
+            }
+
+            const patient = patients.find(p => p.id === currentPatientId);
+            patient.treatments.push({ date, procedure: proc, notes });
+
+            document.getElementById('treat-proc').value = '';
+            document.getElementById('treat-notes').value = '';
+            
+            toggleTreatmentForm();
+            refreshTreatmentsTable(patient);
+            showMessage('Treatment saved successfully!');
+        }
+    </script>
+</body>
+</html>
